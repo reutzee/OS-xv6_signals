@@ -65,6 +65,18 @@ myproc(void) {
   return p;
 }
 
+
+int 
+allocpid(void) 
+{
+  int pid;
+  acquire(&ptable.lock);
+  pid = nextpid++;
+  release(&ptable.lock);
+  return pid;
+}
+
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -87,9 +99,9 @@ allocproc(void)
 
 found:
   p->state = EMBRYO;
-  p->pid = nextpid++;
-
   release(&ptable.lock);
+  p->pid = allocpid();
+
 
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
