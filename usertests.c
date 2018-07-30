@@ -390,9 +390,9 @@ preempt(void)
   }
   close(pfds[0]);
   printf(1, "kill... ");
-  kill(pid1);
-  kill(pid2);
-  kill(pid3);
+  kill(pid1,SIGKILL);
+  kill(pid2,SIGKILL);
+  kill(pid3,SIGKILL);
   printf(1, "wait... ");
   wait();
   wait();
@@ -446,7 +446,7 @@ mem(void)
     m1 = malloc(1024*20);
     if(m1 == 0){
       printf(1, "couldn't allocate mem?!!\n");
-      kill(ppid);
+      kill(ppid,SIGKILL);
       exit();
     }
     free(m1);
@@ -468,7 +468,6 @@ sharedfd(void)
   char buf[10];
 
   printf(1, "sharedfd test\n");
-
   unlink("sharedfd");
   fd = open("sharedfd", O_CREATE|O_RDWR);
   if(fd < 0){
@@ -484,9 +483,15 @@ sharedfd(void)
     }
   }
   if(pid == 0)
+    {printf(stdout,"Exit sharedfd\n");
     exit();
+  }
   else
+  {
+    printf(1,"waiting sharedfd\n");
     wait();
+    printf(1,"wait sharedfd done\n");
+  }
   close(fd);
   fd = open("sharedfd", 0);
   if(fd < 0){
@@ -1503,7 +1508,7 @@ sbrktest(void)
     }
     if(pid == 0){
       printf(stdout, "oops could read %x = %x\n", a, *a);
-      kill(ppid);
+      kill(ppid,SIGKILL);
       exit();
     }
     wait();
@@ -1532,7 +1537,7 @@ sbrktest(void)
   for(i = 0; i < sizeof(pids)/sizeof(pids[0]); i++){
     if(pids[i] == -1)
       continue;
-    kill(pids[i]);
+    kill(pids[i],SIGKILL);
     wait();
   }
   if(c == (char*)0xffffffff){
@@ -1576,9 +1581,8 @@ validatetest(void)
     }
     sleep(0);
     sleep(0);
-    kill(pid);
+    kill(pid,SIGKILL);
     wait();
-
     // try to crash the kernel by passing in a bad string pointer
     if(link("nosuchfile", (char*)p) != -1){
       printf(stdout, "link should not succeed\n");

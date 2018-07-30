@@ -14,6 +14,39 @@ sys_fork(void)
 }
 
 int
+sys_sigret(void)
+{
+  sigret();
+  return 0;
+}
+
+int 
+sys_signal(void)
+{
+  int* newsignal;
+  int signum;
+  if(argint(0, &signum)<0)
+  {
+    return -1;
+  }
+  if (argint(1,(int*)(&newsignal))<0)
+    return -1;
+
+  return (int)signal(signum,(sighandler_t)newsignal);
+}
+
+
+int
+sys_sigprocmask (void)
+{
+  int sigmask;
+  argint(0, &sigmask);
+  
+
+  return sigprocmask((uint)sigmask);
+}
+
+int
 sys_exit(void)
 {
   exit();
@@ -30,10 +63,13 @@ int
 sys_kill(void)
 {
   int pid;
+  int signum;
 
   if(argint(0, &pid) < 0)
     return -1;
-  return kill(pid);
+  if(argint(1,&signum)<0)
+    return -1;
+  return kill(pid,signum);
 }
 
 int
@@ -67,7 +103,7 @@ sys_sleep(void)
   acquire(&tickslock);
   ticks0 = ticks;
   while(ticks - ticks0 < n){
-    if(myproc()->killed){
+    if(myproc()->killed|| ( (myproc()->pending_signals & (1<< SIGKILL))!=0  && (myproc()->signal_mask &  (1<< SIGKILL))==0)  ){
       release(&tickslock);
       return -1;
     }

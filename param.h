@@ -11,4 +11,11 @@
 #define LOGSIZE      (MAXOPBLOCKS*3)  // max data blocks in on-disk log
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
+#define SIG_DFL -1 /* defauly signal handling*/
+#define SIG_IGN 1 /* ignore signal*/
 
+#define SIGKILL  9
+#define SIGSTOP  17
+#define SIGCONT  19
+
+#define SIG_NUM  32

@@ -9,6 +9,9 @@ struct cpu {
   int intena;                  // Were interrupts enabled before pushcli?
   struct proc *proc;           // The process running on this cpu or null
 };
+/*defines in param.h*/
+
+
 
 extern struct cpu cpus[NCPU];
 extern int ncpu;
@@ -32,6 +35,48 @@ struct context {
   uint eip;
 };
 
+
+
+
+
+struct backup_trapframe {
+  // registers as pushed by pusha
+  uint edi;
+  uint esi;
+  uint ebp;
+  uint oesp;      // useless & ignored
+  uint ebx;
+  uint edx;
+  uint ecx;
+  uint eax;
+
+  // rest of trap frame
+  ushort gs;
+  ushort padding1;
+  ushort fs;
+  ushort padding2;
+  ushort es;
+  ushort padding3;
+  ushort ds;
+  ushort padding4;
+  uint trapno;
+
+  // below here defined by x86 hardware
+  uint err;
+  uint eip;
+  ushort cs;
+  ushort padding5;
+  uint eflags;
+
+  // below here only when crossing rings, such as from user to kernel
+  uint esp;
+  ushort ss;
+  ushort padding6;
+};
+
+
+
+
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
@@ -49,6 +94,15 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int executing_signal;
+  uint backup_mask;
+  int frozen;                 //frozen process from sigstop
+  uint pending_signals;             //pending signals
+  uint signal_mask;                 //signal mask
+  void* signal_handler[32];         // signal handler
+  int sig_counter;
+  struct backup_trapframe user_backup;    // Trap frame for userbackup
 };
 
 // Process memory is laid out contiguously, low addresses first:
